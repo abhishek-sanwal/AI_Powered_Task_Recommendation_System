@@ -13,13 +13,6 @@ function Login() {
 
   const { navigate } = useTaskContext();
 
-  useEffect(() => {
-    if (localStorage.getItem("userId") != null) {
-      console.log(localStorage.getItem("userId"));
-      navigate("/home");
-    }
-  }, []);
-
   function handleSave() {
     setIsSaving(true);
     try {
@@ -39,7 +32,7 @@ function Login() {
         .then((res) => res.data)
         .then((data) => {
           console.log(data);
-          localStorage.setItem("userId", data.id);
+          localStorage.setItem("userId", JSON.stringify(data.userId));
           navigate("/home");
         });
     } catch (error) {

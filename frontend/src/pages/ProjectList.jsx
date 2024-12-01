@@ -17,60 +17,37 @@ function ProjectList() {
   const navigate = useNavigate();
   const [userId, setUserId] = useState();
   const [tasks, setTasks] = useState();
+
   useEffect(function () {
     const user = localStorage.getItem("userId");
     console.log(user);
     if (!user) navigate("/login");
     setUserId(user);
   }, []);
-  useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        console.log(userId); // Debugging line
-        if (userId) {
-          const response = await axiosTask.get(`${taskListEndpoint}/${userId}`);
-          setTasks(response.data); // Ensure `setTasks` is properly defined in your component
-        }
-      } catch (error) {
-        console.error("Error fetching tasks:", error);
-      }
-    };
 
-    fetchTasks(); // Call the function inside useEffect
-  }, [userId]);
+  async function fetchTasks() {
+    try {
+      console.log(userId); // Debugging line
+      if (userId) {
+        const response = await axiosTask.get(`${taskListEndpoint}/${userId}`);
+        console.log("called", tasks);
+        setTasks(response.data); // Ensure `setTasks` is properly defined in your component
+      }
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+    }
+  }
+
+  useEffect(
+    function () {
+      fetchTasks();
+    },
+    [userId]
+  );
 
   function Logout() {
     localStorage.removeItem("userId");
     navigate("login/");
-  }
-
-  function createTask({ formData }) {
-    axiosTask
-      .post(
-        taskCreateEndpoint,
-        {
-          ...formData,
-          user_id: userId,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      )
-      .then(
-        Swal.fire({
-          icon: "success",
-          text: "Created Successfully",
-        })
-      )
-      .catch((error) => {
-        console.log(error);
-        Swal.fire({
-          icon: "error",
-          text: "Some error occurred",
-        });
-      });
   }
 
   function updateTask({ formData }) {
@@ -125,6 +102,7 @@ function ProjectList() {
               showConfirmButton: false,
               timer: 1500,
             });
+            fetchTasks();
           })
           .catch(function (error) {
             Swal.fire({
@@ -141,7 +119,7 @@ function ProjectList() {
   return (
     <Layout>
       <Navbar />
-      <ModalForm buttonText={"Create Task"} handleForm={createTask} />
+
       <div className="container mt-4 bg-purple-200 px-3 mb-4">
         <h2 className="text-center mt-6 pt-4 mb-3">Tasks List</h2>
         <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
@@ -151,6 +129,12 @@ function ProjectList() {
                 <div className="card-body">
                   <p className="flex items-center justify-between">
                     <ModalForm
+                      title={task.title}
+                      description={task.description}
+                      status={task.status}
+                      priority={task.priority}
+                      deadline={task.priority}
+                      estimated_time={task.estimated_time}
                       buttonText={"Update Task"}
                       handleForm={updateTask}
                     />
@@ -183,5 +167,4 @@ function ProjectList() {
     </Layout>
   );
 }
-
 export default ProjectList;

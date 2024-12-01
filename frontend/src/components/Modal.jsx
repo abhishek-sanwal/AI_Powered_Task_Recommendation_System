@@ -1,22 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-const ModalForm = ({
-  buttonText,
-  handleForm,
-  title,
-  description,
-  status,
-  priority,
-  deadline,
-  estimated_time,
-}) => {
+function ModalForm({ buttonText, handleForm }) {
   const [formData, setFormData] = useState({
-    title: title ?? "",
-    description: description ?? "",
-    status: status ?? "",
-    priority: priority ?? "",
-    deadline: deadline ?? "",
-    estimated_time: estimated_time ?? "",
+    title: "",
+    description: "",
+    status: "",
+    priority: "",
+    deadline: "",
+    estimated_time: "",
   });
 
   const handleChange = (e) => {
@@ -178,6 +169,6 @@ const ModalForm = ({
       </div>
     </>
   );
-};
+}
 
 export default ModalForm;

@@ -1,9 +1,10 @@
 import { axiosBase, loginEndpoint } from "../assets/endpoints";
-import { useEffect, useState } from "react";
 
-import Fire from "../hooks/Fire";
+import { Fire } from "../hooks/Notifications";
 import Layout from "../components/Layout";
 import { Link } from "react-router-dom";
+import axiosCaller from "../hooks/AxiosCaller";
+import { useState } from "react";
 import { useTaskContext } from "../context/TaskContext";
 
 function Login() {
@@ -13,36 +14,33 @@ function Login() {
 
   const { navigate } = useTaskContext();
 
-  function handleSave() {
+  const handleSave = () => {
     setIsSaving(true);
-    try {
-      axiosBase
-        .post(
-          loginEndpoint,
-          {
-            email,
-            password,
-          },
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        )
-        .then((res) => res.data)
-        .then((data) => {
-          console.log(data);
-          localStorage.setItem("userId", JSON.stringify(data.userId));
-          navigate("/home");
-        });
-    } catch (error) {
-      Fire("No valid user found with given email and password");
-    }
+    const callApi = async () => {
+      const [error, response] = await axiosCaller({
+        method: "post",
+        endpoint: loginEndpoint,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: {
+          email,
+          password,
+        },
+        axiosBase: axiosBase,
+        errorCallBack: Fire,
+      });
+      console.log(error, response);
 
-    // setEmail("");
-    // setPassword("");
-    // setIsSaving(false);
-  }
+      // If user is authenticated
+      if (response?.status === 200) {
+        localStorage.setItem("userId", JSON.stringify(response?.data?.userId));
+        navigate("/home");
+      }
+    };
+    callApi();
+    setIsSaving(false);
+  };
 
   return (
     <Layout>

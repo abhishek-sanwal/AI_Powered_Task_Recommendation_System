@@ -1,20 +1,11 @@
 import { axiosBase, signupEndpoint } from "../assets/endpoints";
 
-import Fire from "../hooks/Fire";
+import { Fire } from "../hooks/Notifications";
 import Layout from "../components/Layout";
 import { Link } from "react-router-dom";
-import Swal from "sweetalert2";
+import axiosCaller from "../hooks/AxiosCaller";
 import { useState } from "react";
 import { useTaskContext } from "../context/TaskContext";
-
-function fire(data) {
-  Swal.fire({
-    icon: "error",
-    title: data,
-    showConfirmButton: false,
-    timer: 1500,
-  });
-}
 
 function Registration() {
   const [username, setUserName] = useState("");
@@ -25,65 +16,67 @@ function Registration() {
 
   const { navigate } = useTaskContext();
 
-  const handleSave = () => {
+  function handleSave() {
     if (!username) {
-      fire("Empty Username");
-      return;
-    }
-    if (!password) {
-      fire("Empty password or password length is less than 8.");
+      Fire("Username field can not be empty");
       return;
     }
     if (!email) {
-      fire("Empty email");
+      Fire("Email field can not be empty");
       return;
     }
-    if (!password) {
-      fire("Empty password");
+    if (password?.length < 8) {
+      Fire("Password length is less than 8 characters.");
       return;
     }
     if (password !== password_confirmation) {
-      fire("passwords doesn't match");
+      Fire("Passwords doesn't match");
       return;
     }
-
-    try {
-      console.log(" Posting...");
-
-      axiosBase
-        .post(
-          signupEndpoint,
-          {
-            username,
-            email,
-            password,
-          },
-          {
-            headers: {
-              "Content-type": "application/json",
-            },
-          }
-        )
-        .then(navigate("/login"));
-    } catch (e) {
-      console.log(e);
-      Fire("Some Error occurred!");
-    }
-
     setIsSaving(true);
 
-    setUserName("");
-    setEmail("");
-    setPassword("");
-    setPasswordConfirmation("");
-  };
+    // Call the async AxiosCaller
+    const callApi = async () => {
+      const [error, response] = await axiosCaller({
+        method: "post",
+        endpoint: signupEndpoint,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: {
+          username,
+          email,
+          password,
+        },
+        axiosBase: axiosBase,
+        errorCallBack: Fire,
+      });
+
+      console.log(error, response);
+
+      // If user is created successfully
+      if (response?.status === 201) {
+        navigate("/login");
+      }
+    };
+
+    // Call the async function
+    callApi().finally(() => {
+      setIsSaving(false);
+      setPasswordConfirmation("");
+      setEmail("");
+      setPassword("");
+      setUserName("");
+    });
+  }
+
   return (
     <Layout>
-      <div>
+      <div className="">
         <div className="container">
           <div className="row">
             <div className="col-sm-9 col-md-7 col-lg-5 mx-auto">
-              <div className="card border-0 shadow rounded-3 my-5">
+              <div className=" card border-0 shadow rounded-3 my-5">
                 <div className="card-body p-4 p-sm-5">
                   <h5 className="card-title text-center mb-5 fw-light fs-5">
                     Create new account
@@ -98,7 +91,7 @@ function Registration() {
                         type="text"
                         className="form-control"
                         id="floatingInput"
-                        placeholder="Jhon Joe"
+                        placeholder="John Doe"
                       />
                       <label htmlFor="floatingInput">Username</label>
                     </div>
@@ -152,7 +145,7 @@ function Registration() {
                         className="btn btn-primary btn-login text-uppercase fw-bold"
                         type="button"
                       >
-                        Sign Up
+                        {isSaving ? "Creating User..." : "Sign Up"}
                       </button>
                     </div>
                     <hr className="my-4"></hr>
@@ -160,7 +153,7 @@ function Registration() {
                     <div className="d-grid">
                       <Link
                         className="btn btn-outline-primary btn-login text-uppercase fw-bold"
-                        to="/"
+                        to="/login"
                       >
                         Log in
                       </Link>

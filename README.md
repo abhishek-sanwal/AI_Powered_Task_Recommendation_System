@@ -98,7 +98,3 @@ AI Powered Task Management System
 - Upgrade to PostgresDB.
 
 ---
-
-```
-
-```
